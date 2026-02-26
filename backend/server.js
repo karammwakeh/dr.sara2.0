@@ -180,7 +180,7 @@ app.get('/api/products', async (req, res) => {
 
         const where = 'WHERE ' + conditions.join(' AND ');
         const result = await pool.query(
-            `SELECT p.*, c.name_ar as category_name FROM products p LEFT JOIN categories c ON p.category_id=c.id ${where} ORDER BY p.is_featured DESC, p.created_at DESC LIMIT $${pc} OFFSET $${pc+1}`,
+            `SELECT p.*, c.name_ar as category_name FROM products p LEFT JOIN categories c ON p.category_id=c.id ${where} ORDER BY p.is_featured DESC, p.created_at DESC LIMIT $${pc} OFFSET $${pc + 1}`,
             [...params, limit, offset]
         );
         const countResult = await pool.query(`SELECT COUNT(*) FROM products p ${where}`, params);
@@ -227,7 +227,7 @@ app.post('/api/admin/products', authenticateToken, upload.array('images', 5), as
                 status || 'published', JSON.stringify(images)
             ]
         );
-        await pool.query('INSERT INTO activity_logs (admin_id,action,entity_type,entity_id,description) VALUES ($1,$2,$3,$4,$5)', [req.admin.id, 'created', 'product', result.rows[0].id, `Created: ${name_ar}`]).catch(() => {});
+        await pool.query('INSERT INTO activity_logs (admin_id,action,entity_type,entity_id,description) VALUES ($1,$2,$3,$4,$5)', [req.admin.id, 'created', 'product', result.rows[0].id, `Created: ${name_ar}`]).catch(() => { });
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Create product error:', error);
@@ -277,7 +277,7 @@ app.get('/api/admin/orders', authenticateToken, async (req, res) => {
         let pc = 1;
         if (status) { conditions.push(`status=$${pc++}`); params.push(status); }
         const where = 'WHERE ' + conditions.join(' AND ');
-        const result = await pool.query(`SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT $${pc} OFFSET $${pc+1}`, [...params, limit, offset]);
+        const result = await pool.query(`SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT $${pc} OFFSET $${pc + 1}`, [...params, limit, offset]);
         const count = await pool.query(`SELECT COUNT(*) FROM orders ${where}`, params);
         res.json({ orders: result.rows, total: parseInt(count.rows[0].count), page: parseInt(page), totalPages: Math.ceil(count.rows[0].count / limit) });
     } catch (error) {
@@ -455,7 +455,7 @@ app.get('/api/admin/bookings', authenticateToken, async (req, res) => {
         let pc = 1;
         if (status) { conditions.push(`status=$${pc++}`); params.push(status); }
         const where = 'WHERE ' + conditions.join(' AND ');
-        const result = await pool.query(`SELECT * FROM bookings ${where} ORDER BY created_at DESC LIMIT $${pc} OFFSET $${pc+1}`, [...params, limit, offset]);
+        const result = await pool.query(`SELECT * FROM bookings ${where} ORDER BY created_at DESC LIMIT $${pc} OFFSET $${pc + 1}`, [...params, limit, offset]);
         const count = await pool.query(`SELECT COUNT(*) FROM bookings ${where}`, params);
         res.json({ bookings: result.rows, total: parseInt(count.rows[0].count) });
     } catch (error) { res.status(500).json({ error: 'Server error' }); }
@@ -524,12 +524,30 @@ app.put('/api/admin/blog/:id', authenticateToken, upload.single('image'), async 
         const { title_ar, excerpt_ar, content_ar, category, status } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : req.body.existing_image;
         const result = await pool.query(
-            `UPDATE blog_posts SET title_ar=$1,excerpt_ar=$2,content_ar=$3,category=$4,status=$5,image_url=$6,updated_at=NOW(), published_at=CASE WHEN $5='published' AND published_at IS NULL THEN NOW() ELSE published_at END WHERE id=$7 RETURNING *`,
+            `UPDATE blog_posts SET
+        title_ar=$1,
+        excerpt_ar=$2,
+        content_ar=$3,
+        category=$4,
+        status=$5::varchar,
+        image_url=$6,
+        updated_at=NOW(),
+        published_at=
+        CASE
+            WHEN $5::varchar='published' AND published_at IS NULL
+            THEN NOW()
+            ELSE published_at
+        END
+        WHERE id=$7
+        RETURNING *`,
             [title_ar, excerpt_ar, content_ar, category, status, image, req.params.id]
         );
         if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
         res.json(result.rows[0]);
-    } catch (error) { res.status(500).json({ error: 'Server error' }); }
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+        console.error(error);
+    }
 });
 
 app.delete('/api/admin/blog/:id', authenticateToken, async (req, res) => {
