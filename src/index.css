@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 240 60% 98%; /* #E6E6FA approx */
+    --foreground: 240 28% 14%; /* #1A1A2E */
+    --card: 0 0% 100%;
+    --card-foreground: 240 28% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 28% 14%;
+    --primary: 270 100% 50%; /* #7F00FF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 269 98% 61%; /* #993AFE */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 270 20% 96%;
+    --muted-foreground: 240 5% 64%;
+    --accent: 269 98% 61%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 270 100% 50%;
+    --radius: 0.75rem;
+  }
+ 
+  .dark {
+    --background: 240 28% 14%;
+    --foreground: 0 0% 98%;
+    --card: 240 28% 14%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 28% 14%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 270 100% 60%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 269 98% 61%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 269 98% 61%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 270 100% 50%;
+  }
+
+  body {
+    @apply bg-quinary text-dark antialiased;
+    font-family: 'Lato', sans-serif;
+  }
+
+  [dir="rtl"] body {
+    font-family: 'Cairo', 'Almarai', 'Tajawal', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+    @apply font-cairo font-bold;
+  }
+
+  /* Glassmorphism utility */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
