@@ -671,6 +671,14 @@ app.use((req, res) => res.status(404).json({ error: `Route not found: ${req.meth
 // Start Server
 // ===================================
 app.listen(PORT, () => {
+    // Auto-run schema
+const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
+if (fs.existsSync(schemaPath)) {
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    pool.query(schema)
+        .then(() => console.log('✅ Schema applied'))
+        .catch(err => console.log('Schema note:', err.message));
+}
     console.log(`\n🚀 Dr. Sara Backend`);
     console.log(`✅ http://localhost:${PORT}`);
     console.log(`✅ Health: http://localhost:${PORT}/health\n`);
