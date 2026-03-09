@@ -6,7 +6,7 @@ import axios from 'axios';
 // Base URL للـ Backend
 // في dev: vite.config.js عنده proxy من /api -> localhost:5000
 // في production: VITE_API_URL يشير لرابط البيكند الفعلي
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = 'https://drsara20-production.up.railway.app/api';
 
 // إنشاء Axios instance
 const api = axios.create({
