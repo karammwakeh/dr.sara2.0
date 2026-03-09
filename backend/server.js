@@ -666,15 +666,176 @@ app.use((req, res) => res.status(404).json({ error: `Route not found: ${req.meth
 // ===================================
 // Start Server
 // ===================================
-app.listen(PORT, () => {
+
+app.listen(PORT, async () => {
     // Auto-run schema
-const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
-if (fs.existsSync(schemaPath)) {
-    const schema = fs.readFileSync(schemaPath, 'utf8');
-    pool.query(schema)
-        .then(() => console.log('✅ Schema applied'))
-        .catch(err => console.log('Schema note:', err.message));
-}
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255),
+                role VARCHAR(50) DEFAULT 'admin',
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY,
+                name_ar VARCHAR(255) NOT NULL,
+                name_en VARCHAR(255),
+                slug VARCHAR(255) UNIQUE,
+                description TEXT,
+                is_active BOOLEAN DEFAULT true,
+                display_order INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                category_id INT REFERENCES categories(id),
+                name_ar VARCHAR(255) NOT NULL,
+                name_en VARCHAR(255),
+                sku VARCHAR(100) UNIQUE,
+                price DECIMAL(10,2) NOT NULL,
+                sale_price DECIMAL(10,2),
+                short_description TEXT,
+                description TEXT,
+                images JSONB DEFAULT '[]',
+                stock_quantity INT DEFAULT 0,
+                low_stock_threshold INT DEFAULT 5,
+                track_inventory BOOLEAN DEFAULT true,
+                is_featured BOOLEAN DEFAULT false,
+                is_digital BOOLEAN DEFAULT false,
+                status VARCHAR(50) DEFAULT 'published',
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS customers (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                phone VARCHAR(50),
+                first_name VARCHAR(100),
+                last_name VARCHAR(100),
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS orders (
+                id SERIAL PRIMARY KEY,
+                order_number VARCHAR(100) UNIQUE,
+                customer_id INT REFERENCES customers(id),
+                customer_email VARCHAR(255),
+                customer_phone VARCHAR(50),
+                customer_name VARCHAR(255),
+                shipping_address JSONB,
+                subtotal DECIMAL(10,2),
+                shipping_cost DECIMAL(10,2) DEFAULT 0,
+                tax DECIMAL(10,2) DEFAULT 0,
+                discount DECIMAL(10,2) DEFAULT 0,
+                total DECIMAL(10,2),
+                coupon_code VARCHAR(100),
+                status VARCHAR(50) DEFAULT 'pending',
+                payment_status VARCHAR(50) DEFAULT 'pending',
+                payment_method VARCHAR(100),
+                payment_transaction_id VARCHAR(255),
+                shipping_method VARCHAR(100),
+                tracking_number VARCHAR(255),
+                shipping_company VARCHAR(100),
+                notes TEXT,
+                shipped_at TIMESTAMP,
+                delivered_at TIMESTAMP,
+                paid_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS order_items (
+                id SERIAL PRIMARY KEY,
+                order_id INT REFERENCES orders(id),
+                product_id INT REFERENCES products(id),
+                product_name VARCHAR(255),
+                product_sku VARCHAR(100),
+                product_image TEXT,
+                price DECIMAL(10,2),
+                quantity INT,
+                subtotal DECIMAL(10,2)
+            );
+            CREATE TABLE IF NOT EXISTS bookings (
+                id SERIAL PRIMARY KEY,
+                booking_ref VARCHAR(100) UNIQUE,
+                customer_id INT REFERENCES customers(id),
+                customer_name VARCHAR(255),
+                customer_email VARCHAR(255),
+                customer_phone VARCHAR(50),
+                session_type VARCHAR(100),
+                booking_date DATE,
+                time_slot VARCHAR(50),
+                consultation_topic TEXT,
+                notes TEXT,
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS contact_messages (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                email VARCHAR(255),
+                phone VARCHAR(50),
+                subject VARCHAR(255),
+                message TEXT,
+                is_read BOOLEAN DEFAULT false,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS blog_posts (
+                id SERIAL PRIMARY KEY,
+                title_ar VARCHAR(255),
+                excerpt_ar TEXT,
+                content_ar TEXT,
+                slug VARCHAR(255) UNIQUE,
+                category VARCHAR(100),
+                status VARCHAR(50) DEFAULT 'draft',
+                image_url TEXT,
+                author_id INT,
+                published_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS shipping_methods (
+                id SERIAL PRIMARY KEY,
+                name_ar VARCHAR(255),
+                price DECIMAL(10,2),
+                estimated_days_min INT,
+                estimated_days_max INT,
+                free_shipping_threshold DECIMAL(10,2),
+                is_active BOOLEAN DEFAULT true,
+                display_order INT DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS coupons (
+                id SERIAL PRIMARY KEY,
+                code VARCHAR(100) UNIQUE,
+                discount_type VARCHAR(50),
+                discount_value DECIMAL(10,2),
+                minimum_order_amount DECIMAL(10,2),
+                usage_limit INT,
+                times_used INT DEFAULT 0,
+                is_active BOOLEAN DEFAULT true,
+                expires_at TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id SERIAL PRIMARY KEY,
+                admin_id INT,
+                action VARCHAR(100),
+                entity_type VARCHAR(100),
+                entity_id INT,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            INSERT INTO admins (email, password_hash, full_name, role)
+            VALUES ('dr.sara@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Dr. Sara', 'super_admin')
+            ON CONFLICT (email) DO NOTHING;
+        `);
+        console.log('✅ Schema applied');
+    } catch (err) {
+        console.log('Schema note:', err.message);
+    }
     console.log(`\n🚀 Dr. Sara Backend`);
     console.log(`✅ http://localhost:${PORT}`);
     console.log(`✅ Health: http://localhost:${PORT}/health\n`);
