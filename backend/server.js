@@ -8,6 +8,14 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,9 +56,12 @@ app.use('/uploads', express.static(uploadsDir));
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
 // File Upload
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname))
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'dr-sara-products',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    },
 });
 const upload = multer({
     storage,
