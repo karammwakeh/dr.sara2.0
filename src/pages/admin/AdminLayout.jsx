@@ -11,6 +11,7 @@ import AdminOrders from './sections/AdminOrders';
 import AdminBookings from './sections/AdminBookings';
 import AdminMessages from './sections/AdminMessages';
 import AdminBlog from './sections/AdminBlog';
+import AdminSettings from './sections/AdminSettings';
 
 const nav = [
   { path: '/admin', label: 'الرئيسية', icon: LayoutDashboard, exact: true },
@@ -19,6 +20,7 @@ const nav = [
   { path: '/admin/bookings', label: 'الحجوزات', icon: Calendar },
   { path: '/admin/messages', label: 'الرسائل', icon: Mail },
   { path: '/admin/blog', label: 'المدونة', icon: BookOpen },
+  { path: '/admin/settings', label: 'الإعدادات', icon: Settings },
 ];
 
 const AdminLayout = () => {
@@ -33,9 +35,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans" dir="rtl">
-      {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-900 text-white flex flex-col transition-all duration-300 flex-shrink-0`}>
-        {/* Logo */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           {sidebarOpen && <span className="text-xl font-bold text-yellow-400">لوحة التحكم</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-gray-700 transition-colors mr-auto">
@@ -43,7 +43,6 @@ const AdminLayout = () => {
           </button>
         </div>
 
-        {/* Nav Links */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {nav.map(item => {
             const active = item.exact ? location.pathname === item.path : location.pathname === item.path || location.pathname.startsWith(item.path + '/');
@@ -57,7 +56,6 @@ const AdminLayout = () => {
           })}
         </nav>
 
-        {/* User + Logout */}
         <div className="p-3 border-t border-gray-700">
           {sidebarOpen && (
             <div className="flex items-center gap-3 px-3 py-2 mb-2">
@@ -78,9 +76,7 @@ const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {/* Top Bar */}
         <header className="bg-white border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
           <h1 className="text-xl font-bold text-gray-800">
             {nav.find(n => n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path))?.label || 'لوحة التحكم'}
@@ -92,7 +88,6 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">
           <Routes>
             <Route path="/" element={<AdminHome />} />
@@ -101,6 +96,7 @@ const AdminLayout = () => {
             <Route path="/bookings" element={<AdminBookings />} />
             <Route path="/messages" element={<AdminMessages />} />
             <Route path="/blog/*" element={<AdminBlog />} />
+            <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </main>
       </div>
