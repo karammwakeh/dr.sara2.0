@@ -878,17 +878,6 @@ app.listen(PORT, async () => {
     value TEXT,
     updated_at TIMESTAMP DEFAULT NOW()
 );
-INSERT INTO site_settings (key, value) VALUES
-('hero_title', 'حوّل عقلك. حوّل حياتك.'),
-('hero_subtitle', 'خبيرة في التدريب على الحياة والصحة النفسية'),
-('hero_bg_color', '#7C3AED'),
-('primary_color', '#7C3AED'),
-('site_name', 'د. سارة عبدالله المزيعل'),
-('about_text', 'نبذة عن الدكتورة سارة'),
-('contact_phone', ''),
-('contact_email', ''),
-('contact_whatsapp', '')
-ON CONFLICT (key) DO NOTHING;
                 admin_id INT,
                 action VARCHAR(100),
                 entity_type VARCHAR(100),
