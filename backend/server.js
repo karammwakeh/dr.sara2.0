@@ -673,7 +673,47 @@ app.use((err, req, res, next) => {
 });
 
 app.use((req, res) => res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` }));
+// Site Settings
+app.get('/api/settings', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT key, value FROM site_settings');
+        const settings = {};
+        result.rows.forEach(row => settings[row.key] = row.value);
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
+app.put('/api/admin/settings', authenticateToken, async (req, res) => {
+    try {
+        const settings = req.body;
+        for (const [key, value] of Object.entries(settings)) {
+            await pool.query(
+                'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value=$2, updated_at=NOW()',
+                [key, value]
+            );
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/admin/settings/upload', authenticateToken, upload.single('image'), async (req, res) => {
+    try {
+        const { key } = req.body;
+        if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+        const imageUrl = req.file.path;
+        await pool.query(
+            'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value=$2, updated_at=NOW()',
+            [key, imageUrl]
+        );
+        res.json({ success: true, url: imageUrl });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 // ===================================
 // Start Server
 // ===================================
@@ -832,6 +872,23 @@ app.listen(PORT, async () => {
             );
             CREATE TABLE IF NOT EXISTS activity_logs (
                 id SERIAL PRIMARY KEY,
+                CREATE TABLE IF NOT EXISTS site_settings (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(255) UNIQUE NOT NULL,
+    value TEXT,
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+INSERT INTO site_settings (key, value) VALUES
+('hero_title', 'حوّل عقلك. حوّل حياتك.'),
+('hero_subtitle', 'خبيرة في التدريب على الحياة والصحة النفسية'),
+('hero_bg_color', '#7C3AED'),
+('primary_color', '#7C3AED'),
+('site_name', 'د. سارة عبدالله المزيعل'),
+('about_text', 'نبذة عن الدكتورة سارة'),
+('contact_phone', ''),
+('contact_email', ''),
+('contact_whatsapp', '')
+ON CONFLICT (key) DO NOTHING;
                 admin_id INT,
                 action VARCHAR(100),
                 entity_type VARCHAR(100),
