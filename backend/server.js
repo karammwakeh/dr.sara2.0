@@ -870,20 +870,21 @@ app.listen(PORT, async () => {
                 is_active BOOLEAN DEFAULT true,
                 expires_at TIMESTAMP
             );
-            CREATE TABLE IF NOT EXISTS activity_logs (
+    CREATE TABLE IF NOT EXISTS activity_logs (
                 id SERIAL PRIMARY KEY,
-                CREATE TABLE IF NOT EXISTS site_settings (
-    id SERIAL PRIMARY KEY,
-    key VARCHAR(255) UNIQUE NOT NULL,
-    value TEXT,
-    updated_at TIMESTAMP DEFAULT NOW()
-);
                 admin_id INT,
                 action VARCHAR(100),
                 entity_type VARCHAR(100),
                 entity_id INT,
                 description TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS site_settings (
+                id SERIAL PRIMARY KEY,
+                key VARCHAR(255) UNIQUE NOT NULL,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT NOW()
+            
             );
             INSERT INTO admins (email, password_hash, full_name, role)
             VALUES ('dr.sara@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Dr. Sara', 'super_admin')
